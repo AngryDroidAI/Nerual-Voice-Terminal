@@ -1,70 +1,1030 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mythic Download</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: #fff;
-            background-color: #111;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEURAL_VOICE_TERMINAL_V2.8</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('https://angrydroid.neocities.org/images/signal%202.png');
-            background-position: center center;
-            background-size: cover;
-            background-repeat: no-repeat;
-            opacity: 0.4;
-            filter: brightness(1.0);
-            z-index: -1;
-            pointer-events: none;
-        }
+    :root {
+      --main-color: #0f0;
+      --dim-color: #003300;
+      --bg-color: #020202;
+      --screen-bg: #050a05;
+      --alert-color: #ff3333;
+      --warning-color: #ffcc00;
+      --glow-color: #00ff00;
+      --pulse-color: rgba(0, 255, 0, 0.7);
+    }
 
-        h1 {
-            margin-bottom: 20px;
-            color: #fff;
-            font-size: 2em;
-            text-align: center;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      height: 100vh;
+      width: 100vw;
+      font-family: 'VT323', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--main-color);
+      overflow: hidden;
+      position: relative;
+    }
 
-        .download-link {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #3498db;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
+    /* Matrix rain background */
+    #matrix-rain {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.3;
+    }
 
-        .download-link:hover {
-            background-color: #2980b9;
-        }
-    </style>
+    /* Screen overlay effect */
+    #screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+      pointer-events: none;
+      z-index: 99;
+      border-radius: 20px;
+    }
+
+    /* --- CRT CHASSIS & SCREEN --- */
+    #crt-monitor {
+      position: relative;
+      width: 95%;
+      height: 95%;
+      max-width: 1200px;
+      background-color: var(--screen-bg);
+      border-radius: 20px;
+      border: 3px solid #333;
+      box-shadow: 0 0 50px rgba(0, 255, 0, 0.1);
+      padding: 30px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Screen Flicker Animation */
+    @keyframes flicker {
+      0% { opacity: 0.98; }
+      5% { opacity: 0.95; }
+      10% { opacity: 0.9; }
+      15% { opacity: 0.95; }
+      20% { opacity: 1; }
+      50% { opacity: 0.95; }
+      80% { opacity: 0.98; }
+      100% { opacity: 0.94; }
+    }
+
+    /* Scanlines */
+    #crt-monitor::before {
+      content: " ";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* Vignette (Curved Screen Look) */
+    #crt-monitor::after {
+      content: " ";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 98;
+      border-radius: 15px;
+    }
+
+    .ui-layer {
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      animation: flicker 0.15s infinite;
+      text-shadow: 0 0 4px var(--main-color);
+    }
+
+    /* --- TYPOGRAPHY --- */
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      border-bottom: 2px solid var(--main-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+    }
+    
+    .version { font-size: 0.8rem; opacity: 0.7; }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 1.1rem;
+      color: #8f8;
+    }
+
+    /* --- INPUT AREA --- */
+    textarea {
+      flex-grow: 1;
+      background: rgba(0, 20, 0, 0.2);
+      border: 1px solid var(--dim-color);
+      color: var(--main-color);
+      font-family: 'VT323', monospace;
+      font-size: 1.4rem;
+      padding: 15px;
+      resize: none;
+      outline: none;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      caret-color: var(--main-color);
+      transition: all 0.3s ease;
+    }
+    textarea:focus {
+      border-color: var(--main-color);
+      box-shadow: inset 0 0 10px var(--dim-color), 0 0 15px rgba(0, 255, 0, 0.3);
+    }
+    
+    /* Scrollbar */
+    textarea::-webkit-scrollbar { 
+      width: 12px; 
+      background: #001100; 
+    }
+    textarea::-webkit-scrollbar-thumb { 
+      background: var(--dim-color); 
+      border: 1px solid var(--main-color); 
+      border-radius: 6px;
+    }
+    
+    textarea::-webkit-scrollbar-track {
+      background: rgba(0, 20, 0, 0.2);
+    }
+
+    /* --- CONTROLS --- */
+    .controls-container {
+      margin-top: 15px;
+      border-top: 1px dashed var(--dim-color);
+      padding-top: 15px;
+    }
+
+    .settings-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+      align-items: center;
+      background: rgba(0, 20, 0, 0.4);
+      padding: 8px;
+      border-radius: 5px;
+      flex-wrap: wrap;
+    }
+
+    select, input[type=range] {
+      background: #000;
+      color: var(--main-color);
+      border: 1px solid var(--dim-color);
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      padding: 3px;
+      border-radius: 3px;
+    }
+
+    input[type=range] {
+      width: 80px;
+      height: 8px;
+      -webkit-appearance: none;
+      background: rgba(0, 20, 0, 0.5);
+    }
+    
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px;
+      height: 15px;
+      background: var(--main-color);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 5px var(--glow-color);
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    button {
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--main-color);
+      color: var(--main-color);
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+      padding: 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.1s;
+      position: relative;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+
+    button:hover {
+      background: var(--main-color);
+      color: #000;
+      box-shadow: 0 0 15px var(--main-color);
+      text-shadow: 0 0 5px #000;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    /* --- AUDIO VISUALIZER --- */
+    .visualizer {
+      height: 20px;
+      width: 100px;
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+    }
+    .bar {
+      flex: 1;
+      background-color: var(--main-color);
+      height: 5%;
+      transition: height 0.05s ease;
+      border-radius: 1px;
+    }
+    .vis-active .bar {
+      animation: equalize 0.5s infinite alternate;
+    }
+    @keyframes equalize {
+      0% { height: 10%; }
+      100% { height: 100%; }
+    }
+    /* Offset animations for random look */
+    .bar:nth-child(1) { animation-delay: 0.1s; }
+    .bar:nth-child(2) { animation-delay: 0.3s; }
+    .bar:nth-child(3) { animation-delay: 0.0s; }
+    .bar:nth-child(4) { animation-delay: 0.4s; }
+    .bar:nth-child(5) { animation-delay: 0.2s; }
+
+    /* --- BOOT OVERLAY --- */
+    #boot-screen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      transition: opacity 0.5s ease;
+    }
+
+    #boot-text {
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 0 0 10px var(--main-color);
+    }
+
+    .progress-container {
+      width: 300px;
+      height: 15px;
+      border: 1px solid var(--main-color);
+      background: rgba(0, 20, 0, 0.2);
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      border-radius: 7px;
+    }
+
+    #boot-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--dim-color), var(--main-color));
+      box-shadow: 0 0 10px var(--main-color);
+      transition: width 0.3s ease;
+      border-radius: 7px;
+    }
+
+    /* Glitch effect */
+    .glitch {
+      position: relative;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .glitch::before {
+      left: 2px;
+      text-shadow: -2px 0 #ff00c1;
+      clip: rect(44px, 450px, 56px, 0);
+      animation: glitch-anim 5s infinite linear alternate-reverse;
+    }
+
+    .glitch::after {
+      left: -2px;
+      text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
+      clip: rect(44px, 450px, 56px, 0);
+      animation: glitch-anim2 5s infinite linear alternate-reverse;
+    }
+
+    @keyframes glitch-anim {
+      0% { clip: rect(42px, 9999px, 44px, 0); }
+      5% { clip: rect(12px, 9999px, 59px, 0); }
+      10% { clip: rect(48px, 9999px, 29px, 0); }
+      15% { clip: rect(42px, 9999px, 73px, 0); }
+      20% { clip: rect(63px, 9999px, 27px, 0); }
+      25% { clip: rect(34px, 9999px, 55px, 0); }
+      30% { clip: rect(86px, 9999px, 73px, 0); }
+      35% { clip: rect(20px, 9999px, 20px, 0); }
+      40% { clip: rect(26px, 9999px, 60px, 0); }
+      45% { clip: rect(25px, 9999px, 66px, 0); }
+      50% { clip: rect(57px, 9999px, 98px, 0); }
+      55% { clip: rect(5px, 9999px, 46px, 0); }
+      60% { clip: rect(82px, 9999px, 31px, 0); }
+      65% { clip: rect(54px, 9999px, 27px, 0); }
+      70% { clip: rect(28px, 9999px, 99px, 0); }
+      75% { clip: rect(45px, 9999px, 69px, 0); }
+      80% { clip: rect(23px, 9999px, 85px, 0); }
+      85% { clip: rect(1px, 9999px, 83px, 0); }
+      90% { clip: rect(72px, 9999px, 11px, 0); }
+      95% { clip: rect(60px, 9999px, 88px, 0); }
+      100% { clip: rect(52px, 9999px, 77px, 0); }
+    }
+
+    @keyframes glitch-anim2 {
+      0% { clip: rect(65px, 9999px, 100px, 0); }
+      5% { clip: rect(52px, 9999px, 74px, 0); }
+      10% { clip: rect(79px, 9999px, 85px, 0); }
+      15% { clip: rect(75px, 9999px, 5px, 0); }
+      20% { clip: rect(67px, 9999px, 61px, 0); }
+      25% { clip: rect(14px, 9999px, 79px, 0); }
+      30% { clip: rect(1px, 9999px, 66px, 0); }
+      35% { clip: rect(86px, 9999px, 30px, 0); }
+      40% { clip: rect(23px, 9999px, 98px, 0); }
+      45% { clip: rect(85px, 9999px, 72px, 0); }
+      50% { clip: rect(71px, 9999px, 75px, 0); }
+      55% { clip: rect(2px, 9999px, 48px, 0); }
+      60% { clip: rect(30px, 9999px, 16px, 0); }
+      65% { clip: rect(59px, 9999px, 50px, 0); }
+      70% { clip: rect(41px, 9999px, 62px, 0); }
+      75% { clip: rect(2px, 9999px, 82px, 0); }
+      80% { clip: rect(47px, 9999px, 73px, 0); }
+      85% { clip: rect(3px, 9999px, 27px, 0); }
+      90% { clip: rect(26px, 9999px, 55px, 0); }
+      95% { clip: rect(42px, 9999px, 97px, 0); }
+      100% { clip: rect(38px, 9999px, 49px, 0); }
+    }
+
+    /* Terminal cursor */
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 1.4rem;
+      background-color: var(--main-color);
+      margin-left: 5px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Pulse effect for buttons */
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+    }
+    
+    /* Warning flash */
+    @keyframes warn-flash {
+      0%, 100% { color: var(--warning-color); }
+      50% { color: var(--alert-color); }
+    }
+    
+    .warn-flash {
+      animation: warn-flash 1s infinite;
+    }
+    
+    /* Enhanced modal for theme selection */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 1);
+      z-index: 300;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+      max-width: 500px;
+    }
+    
+    .theme-option {
+      padding: 15px;
+      border: 2px solid;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    
+    .theme-option:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px currentColor;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      #crt-monitor {
+        padding: 15px;
+        height: 90%;
+        width: 90%;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .button-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .settings-row {
+        gap: 5px;
+      }
+      
+      input[type=range] {
+        width: 60px;
+      }
+      
+      textarea {
+        font-size: 1.2rem;
+      }
+      
+      .visualizer {
+        width: 80px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      #crt-monitor {
+        padding: 10px;
+        height: 95%;
+      }
+      
+      h1 {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 1.3rem;
+      }
+      
+      .status-bar {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+      }
+      
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .theme-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Mythic Download</h1>
-    <a href="https://www.megadisk.net/cloud11/index.php/s/6AYAhrQEacZDb13/download" 
-       target="_blank" 
-       rel="noopener noreferrer" 
-       class="download-link">
-        Download Mythic
-    </a>
+  <!-- Matrix rain background -->
+  <canvas id="matrix-rain"></canvas>
+  
+  <!-- Screen overlay -->
+  <div id="screen-overlay"></div>
+
+  <div id="crt-monitor">
+    
+    <!-- BOOT SEQUENCE OVERLAY -->
+    <div id="boot-screen">
+      <div id="boot-text" class="glitch" data-text="INITIALIZING NEURAL CORE...">INITIALIZING NEURAL CORE...</div>
+      <div class="progress-container">
+        <div id="boot-bar"></div>
+      </div>
+    </div>
+    
+    <!-- Theme Modal -->
+    <div id="theme-modal" class="modal">
+      <h2 class="glitch" data-text="SELECT THEME">SELECT THEME</h2>
+      <div class="theme-grid">
+        <div class="theme-option" style="color: #0f0; border-color: #0f0;" data-theme="default">DEFAULT</div>
+        <div class="theme-option" style="color: #0af; border-color: #0af;" data-theme="blue">CYBER BLUE</div>
+        <div class="theme-option" style="color: #f0f; border-color: #f0f;" data-theme="purple">NEON VIOLET</div>
+        <div class="theme-option" style="color: #ff6b35; border-color: #ff6b35;" data-theme="orange">SYNTH ORANGE</div>
+      </div>
+      <button onclick="closeThemeModal()" style="margin-top: 20px;">[ CONFIRM ]</button>
+    </div>
+
+    <div class="ui-layer">
+      <h1>
+        <span class="glitch" data-text="NEURAL_VOICE_TERMINAL">NEURAL_VOICE_TERMINAL</span>
+        <span class="version">v2.8 // ONLINE</span>
+      </h1>
+      
+      <div class="status-bar">
+        <span id="system-status">SYS: IDLE</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span>AUDIO_OUT:</span>
+          <div id="visualizer" class="visualizer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <textarea id="input-text" placeholder="> AWAITING INPUT DATA..."></textarea>
+
+      <div class="controls-container">
+        <!-- Settings -->
+        <div class="settings-row">
+          <label>VOICE:</label>
+          <select id="voice-select"></select>
+          <label>SPD:</label>
+          <input type="range" id="rate" min="0.5" max="2" value="0.9" step="0.1">
+          <label>PTCH:</label>
+          <input type="range" id="pitch" min="0" max="2" value="0.8" step="0.1">
+          <label>VOL:</label>
+          <input type="range" id="volume" min="0" max="1" value="1" step="0.1">
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-grid">
+          <button onclick="speakText()" class="pulse">[ SPEAK ]</button>
+          <button onclick="stopSpeaking()">[ HALT ]</button>
+          <button onclick="processText()">[ PROCESS TEXT ]</button>
+          <button onclick="pasteText()">[ PASTE ]</button>
+          <button onclick="copyText()">[ COPY ]</button>
+          
+          <button onclick="saveToBuffer()" style="border-color: #88ff88;">[ QUICK SAVE ]</button>
+          <button onclick="loadFromBuffer()" style="border-color: #88ff88;">[ QUICK LOAD ]</button>
+          
+          <button onclick="downloadFile()" style="border-color: #00ccff; color: #00ccff;">[ SAVE DISK ]</button>
+          <button onclick="document.getElementById('fileInput').click()" style="border-color: #00ccff; color: #00ccff;">[ LOAD DISK ]</button>
+          <button onclick="openThemeModal()" style="border-color: #ff6b35; color: #ff6b35;">[ THEMES ]</button>
+          <button onclick="clearScreen()" style="border-color: var(--alert-color); color:var(--alert-color);">[ PURGE ]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input id="fileInput" type="file" accept=".txt" style="display:none" />
+
+  <script>
+    // --- VARIABLES ---
+    const textarea = document.getElementById('input-text');
+    const statusDisplay = document.getElementById('system-status');
+    const visualizer = document.getElementById('visualizer');
+    const voiceSelect = document.getElementById('voice-select');
+    const synth = window.speechSynthesis;
+    let voices = [];
+    let isSpeaking = false;
+    let theme = localStorage.getItem('neural-terminal-theme') || 'default';
+
+    // --- THEME MANAGEMENT ---
+    function applyTheme(themeName) {
+      theme = themeName;
+      localStorage.setItem('neural-terminal-theme', themeName);
+      
+      switch(themeName) {
+        case 'blue':
+          document.documentElement.style.setProperty('--main-color', '#0af');
+          document.documentElement.style.setProperty('--dim-color', '#003355');
+          document.documentElement.style.setProperty('--glow-color', '#00aaff');
+          document.documentElement.style.setProperty('--pulse-color', 'rgba(0, 170, 255, 0.7)');
+          break;
+        case 'purple':
+          document.documentElement.style.setProperty('--main-color', '#f0f');
+          document.documentElement.style.setProperty('--dim-color', '#330033');
+          document.documentElement.style.setProperty('--glow-color', '#ff00ff');
+          document.documentElement.style.setProperty('--pulse-color', 'rgba(255, 0, 255, 0.7)');
+          break;
+        case 'orange':
+          document.documentElement.style.setProperty('--main-color', '#ff6b35');
+          document.documentElement.style.setProperty('--dim-color', '#332000');
+          document.documentElement.style.setProperty('--glow-color', '#ff8c42');
+          document.documentElement.style.setProperty('--pulse-color', 'rgba(255, 107, 53, 0.7)');
+          break;
+        default:
+          document.documentElement.style.setProperty('--main-color', '#0f0');
+          document.documentElement.style.setProperty('--dim-color', '#003300');
+          document.documentElement.style.setProperty('--glow-color', '#00ff00');
+          document.documentElement.style.setProperty('--pulse-color', 'rgba(0, 255, 0, 0.7)');
+      }
+    }
+
+    function openThemeModal() {
+      document.getElementById('theme-modal').style.display = 'flex';
+    }
+
+    function closeThemeModal() {
+      document.getElementById('theme-modal').style.display = 'none';
+    }
+
+    // --- MATRIX RAIN EFFECT ---
+    const canvas = document.getElementById('matrix-rain');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const characters = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    
+    const drops = [];
+    for(let i = 0; i < columns; i++) {
+      drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+    }
+    
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--main-color');
+      ctx.font = `${fontSize}px VT323`;
+      
+      for(let i = 0; i < drops.length; i++) {
+        const text = characters.charAt(Math.floor(Math.random() * characters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        
+        if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        
+        drops[i]++;
+      }
+    }
+    
+    setInterval(drawMatrix, 33);
+    
+    // --- BOOT SEQUENCE ---
+    window.onload = () => {
+      applyTheme(theme);
+      
+      const bar = document.getElementById('boot-bar');
+      const text = document.getElementById('boot-text');
+      const screen = document.getElementById('boot-screen');
+      
+      let width = 0;
+      const interval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(interval);
+          text.setAttribute('data-text', "SYSTEM READY");
+          text.innerText = "SYSTEM READY";
+          setTimeout(() => {
+            screen.style.opacity = '0';
+            setTimeout(() => {
+              screen.style.display = 'none';
+              textarea.focus();
+              loadFromBuffer(true); // Auto-load local storage nicely
+            }, 500);
+          }, 500);
+        } else {
+          width += 5;
+          bar.style.width = width + '%';
+          if(width === 40) {
+            text.setAttribute('data-text', "LOADING DRIVERS...");
+            text.innerText = "LOADING DRIVERS...";
+          }
+          if(width === 80) {
+            text.setAttribute('data-text', "ESTABLISHING UPLINK...");
+            text.innerText = "ESTABLISHING UPLINK...";
+          }
+        }
+      }, 50);
+    };
+
+    // --- VOICE HANDLING ---
+    function populateVoices() {
+      voices = synth.getVoices();
+      voiceSelect.innerHTML = '';
+      
+      voices.forEach((voice) => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})`;
+        option.setAttribute('data-lang', voice.lang);
+        option.setAttribute('data-name', voice.name);
+        voiceSelect.appendChild(option);
+      });
+
+      // Try to select a "Google US English" voice by default for that robotic feel
+      const defaultVoice = voices.findIndex(v => v.name.includes('Google US English'));
+      if(defaultVoice !== -1) voiceSelect.selectedIndex = defaultVoice;
+    }
+
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    // --- ACTIONS ---
+
+    function speakText() {
+      if (!synth) {
+        updateStatus("ERR: SPEECH SYNTHESIS NOT SUPPORTED", true);
+        return;
+      }
+      
+      if (synth.speaking) {
+        updateStatus("BUSY: SPEECH IN PROGRESS");
+        return;
+      }
+      
+      if (textarea.value.trim() !== '') {
+        const utterThis = new SpeechSynthesisUtterance(textarea.value);
+        
+        // Apply Settings
+        const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+        utterThis.voice = voices.find(v => v.name === selectedOption);
+        utterThis.pitch = document.getElementById('pitch').value;
+        utterThis.rate = document.getElementById('rate').value;
+        utterThis.volume = document.getElementById('volume').value;
+
+        utterThis.onstart = () => {
+          updateStatus("SYS: TRANSMITTING AUDIO...");
+          visualizer.classList.add('vis-active');
+          textarea.style.boxShadow = "inset 0 0 30px var(--main-color)";
+          isSpeaking = true;
+        };
+
+        utterThis.onend = () => {
+          updateStatus("SYS: TRANSMISSION COMPLETE");
+          visualizer.classList.remove('vis-active');
+          textarea.style.boxShadow = "inset 0 0 20px rgba(0,0,0,0.8)";
+          isSpeaking = false;
+        };
+
+        utterThis.onerror = () => {
+          updateStatus("ERR: SYNTHESIS FAILED", true);
+          visualizer.classList.remove('vis-active');
+          isSpeaking = false;
+        };
+
+        synth.speak(utterThis);
+      } else {
+        updateStatus("ERR: NO INPUT TEXT", true);
+      }
+    }
+
+    function stopSpeaking() {
+      if (synth && synth.speaking) {
+        synth.cancel();
+        updateStatus("SYS: AUDIO ABORTED");
+        visualizer.classList.remove('vis-active');
+        isSpeaking = false;
+      }
+    }
+
+    // Text Processing
+    function processText() {
+      const text = textarea.value;
+      if (!text.trim()) {
+        updateStatus("ERR: NO TEXT TO PROCESS", true);
+        return;
+      }
+      
+      // Clean up text: remove extra spaces, add pauses, etc.
+      const processed = text
+        .replace(/\s+/g, ' ')
+        .replace(/([.!?])\s*/g, '$1 ')
+        .replace(/,(\S)/g, ', $1')
+        .trim();
+      
+      if (processed !== text) {
+        textarea.value = processed;
+        updateStatus("SYS: TEXT OPTIMIZED");
+      } else {
+        updateStatus("SYS: TEXT ALREADY OPTIMIZED");
+      }
+    }
+
+    // --- BUFFER (LOCAL STORAGE) ---
+    function saveToBuffer() {
+      const data = textarea.value;
+      if (!data.trim()) { 
+        updateStatus("ERR: BUFFER EMPTY", true); 
+        return; 
+      }
+      localStorage.setItem('cyber_term_data', data);
+      updateStatus("SYS: DATA CACHED TO MEMORY");
+    }
+
+    function loadFromBuffer(silent = false) {
+      const data = localStorage.getItem('cyber_term_data');
+      if (data) {
+        textarea.value = data;
+        if(!silent) updateStatus("SYS: MEMORY RESTORED");
+      } else {
+        if(!silent) updateStatus("ERR: NO CACHED DATA", true);
+      }
+    }
+
+    // --- CLIPBOARD ---
+    async function pasteText() {
+      try {
+        const text = await navigator.clipboard.readText();
+        textarea.value += text;
+        updateStatus("SYS: CLIPBOARD INJECTED");
+      } catch (err) {
+        updateStatus("ERR: CLIPBOARD ACCESS DENIED", true);
+      }
+    }
+
+    function copyText() {
+      if(!textarea.value.trim()) {
+        updateStatus("ERR: NO TEXT TO COPY", true);
+        return;
+      }
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        updateStatus("SYS: COPIED TO CLIPBOARD");
+      });
+    }
+
+    // --- FILE SYSTEM ---
+    function downloadFile() {
+      if(!textarea.value.trim()) { 
+        updateStatus("ERR: NO DATA TO WRITE", true); 
+        return; 
+      }
+      const blob = new Blob([textarea.value], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "neural_log_" + Date.now() + ".txt";
+      a.click();
+      URL.revokeObjectURL(url);
+      updateStatus("SYS: FILE EXPORTED");
+    }
+
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        textarea.value = e.target.result;
+        updateStatus("SYS: FILE DATA LOADED");
+      };
+      reader.readAsText(file);
+      event.target.value = ''; // Reset input
+    });
+
+    function clearScreen() {
+      textarea.value = "";
+      stopSpeaking();
+      updateStatus("SYS: BUFFER PURGED");
+    }
+
+    // --- UTILS ---
+    function updateStatus(msg, isError = false) {
+      statusDisplay.innerText = msg;
+      statusDisplay.style.color = isError ? "var(--alert-color)" : "var(--main-color)";
+      statusDisplay.style.textShadow = isError ? "0 0 5px var(--alert-color)" : "0 0 4px var(--main-color)";
+      
+      if (msg.includes("WARN")) {
+        statusDisplay.classList.add('warn-flash');
+      } else {
+        statusDisplay.classList.remove('warn-flash');
+      }
+      
+      // Auto reset status after 3 seconds
+      if(window.statusTimeout) clearTimeout(window.statusTimeout);
+      window.statusTimeout = setTimeout(() => {
+        statusDisplay.innerText = "SYS: ONLINE";
+        statusDisplay.style.color = "#8f8";
+        statusDisplay.style.textShadow = "0 0 4px var(--main-color)";
+        statusDisplay.classList.remove('warn-flash');
+      }, 3000);
+    }
+
+    // Add typing effect to textarea
+    textarea.addEventListener('input', function() {
+      if (!isSpeaking) {
+        this.style.boxShadow = "inset 0 0 20px rgba(var(--main-color-rgb), 0.3)";
+        setTimeout(() => {
+          if (!isSpeaking) {
+            this.style.boxShadow = "inset 0 0 20px rgba(0,0,0,0.8)";
+          }
+        }, 300);
+      }
+    });
+
+    // Handle window resize for matrix rain
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case 'Enter':
+            e.preventDefault();
+            speakText();
+            break;
+          case 's':
+            e.preventDefault();
+            if (e.shiftKey) {
+              downloadFile();
+            } else {
+              saveToBuffer();
+            }
+            break;
+          case 'l':
+            e.preventDefault();
+            loadFromBuffer();
+            break;
+          case 'p':
+            e.preventDefault();
+            processText();
+            break;
+          case 'c':
+            if (!e.shiftKey) {
+              e.preventDefault();
+              copyText();
+            }
+            break;
+          case 'v':
+            if (!e.shiftKey) {
+              e.preventDefault();
+              pasteText();
+            }
+            break;
+          case 'Escape':
+            e.preventDefault();
+            stopSpeaking();
+            break;
+        }
+      }
+    });
+    
+    // Theme selection handlers
+    document.querySelectorAll('.theme-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const themeName = option.getAttribute('data-theme');
+        applyTheme(themeName);
+      });
+    });
+  </script>
 </body>
 </html>
